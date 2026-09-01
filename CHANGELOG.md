@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.6.0 - 2026-09-01
+
+**Breaking — requires the Member Library Platform plugin to be installed and
+active first.** This release removes the member Library from this plugin. The
+Library now lives in the separate, brand-neutral Member Library Platform plugin
+(`member-library-plugin.php`), which is shared by every brand site. Installing
+0.6.0 on a site without that plugin will remove the Library.
+
+- Stripped this plugin back to the TSOL site-specific features it is now
+  responsible for: the accountability modal and cookie consent (−30,334 lines).
+- Retained the 8 TSOL legacy data-migration modules here, as TSOL-specific data
+  history rather than shared plugin code. They load only under WP-CLI and only
+  operate on the Library content model provided by the canonical plugin.
+- Plugin header renamed to "Tom's School Of Life — Site Companion" to reflect
+  the narrowed responsibility.
+
 ## 0.5.1 - 2026-08-27
 
 - Moved the WebVTT transcript upload and synchronization status into the Content editor’s Media panel, directly beneath the primary playback source.
