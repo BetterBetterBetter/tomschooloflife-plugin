@@ -322,7 +322,7 @@
         script.src = url;
         script.async = true;
         script.dataset.tsolConsentLoaded = category;
-        document.head.appendChild(script);
+        appendScriptSafely(script);
     }
 
     function loadInlineScript(code, category, index) {
@@ -337,7 +337,20 @@
         script = document.createElement('script');
         script.dataset.tsolConsentLoaded = category;
         script.text = code;
-        document.head.appendChild(script);
+        appendScriptSafely(script);
+    }
+
+    // Appending a consent-gated script can throw synchronously when a browser
+    // shield (Brave) blocks it, or when an admin-pasted snippet is malformed.
+    // That must never break the caller (applyConsent), or the banner would fail
+    // to dismiss. Swallow the failure; the tracker simply does not load.
+    function appendScriptSafely(script) {
+        try {
+            document.head.appendChild(script);
+        } catch (error) {
+            // Intentionally ignored: a blocked/invalid script must not abort
+            // consent handling or UI dismissal.
+        }
     }
 
     function activatePlainTextScripts(category) {
@@ -614,9 +627,12 @@
         });
 
         consent = buildConsent(analytics, marketing, 'preferences');
-        applyConsent(consent, true);
+        // Dismiss the UI before applying consent so a downstream failure (a
+        // shield-blocked tracker throwing on append) can never leave the banner
+        // stuck open — the Brave dismissal bug.
         hidePreferences();
         hideBanner();
+        applyConsent(consent, true);
 
         if (status) {
             status.textContent = config.messages && config.messages.saved ? config.messages.saved : 'Cookie choices saved.';
@@ -626,19 +642,19 @@
     function acceptAll() {
         var consent = buildConsent(true, true, 'accept_all');
 
-        applyConsent(consent, true);
         hidePreferences();
         hideBanner();
         syncInputs(consent);
+        applyConsent(consent, true);
     }
 
     function rejectOptional() {
         var consent = buildConsent(false, false, 'reject_optional');
 
-        applyConsent(consent, true);
         hidePreferences();
         hideBanner();
         syncInputs(consent);
+        applyConsent(consent, true);
     }
 
     root.addEventListener('click', function(event) {

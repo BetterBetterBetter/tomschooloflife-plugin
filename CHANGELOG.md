@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.6.2 - 2026-09-01
+
+- Fixed the cookie-consent banner failing to dismiss for Brave users (and
+  anyone whose browser shield blocks a consent-gated script). The accept /
+  reject / save handlers applied consent — which injects the gated tracker
+  scripts — *before* hiding the banner. When a shield made the script append
+  throw synchronously, the exception aborted the handler and the banner stayed
+  open ("clicking a selection does not make the pop-up go away"). The handlers
+  now dismiss the UI first, and all consent-gated script appends are wrapped so
+  a blocked or malformed snippet can neither throw into the handler nor stop
+  other scripts loading. Consent still persists in all cases. Regression
+  covered in `tests/cookie-consent-browser-contract.js`.
+
 ## 0.6.1 - 2026-09-01
 
 - Repointed the two WP-CLI utilities in `tools/` at the renamed library
