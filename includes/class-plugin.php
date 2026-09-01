@@ -13,7 +13,6 @@ class TomsSchoolOfLifePlugin {
     private $admin_settings = null;
     private $accountability_modal_admin = null;
     private $cookie_consent_admin = null;
-    private $library_auth = null;
     private $features = array();
     private $admin_page_hooks = array();
 
@@ -42,8 +41,6 @@ class TomsSchoolOfLifePlugin {
         $this->accountability_modal_admin->init();
         $this->cookie_consent_admin = new TSOL_Cookie_Consent_Admin();
         $this->cookie_consent_admin->init();
-        $this->library_auth = new TSOL_Library_Auth();
-        $this->library_auth->init();
 
         $this->register_features();
         $this->init_features();
@@ -224,22 +221,17 @@ class TomsSchoolOfLifePlugin {
     }
 
     public static function activate() {
-        TSOL_Library_Auth::activate();
-        TSOL_Library_Content::activate();
-        TSOL_Library_Announcements::activate();
+        // The library core (auth/content/announcements) lives in the separate
+        // Member Library Platform plugin; this companion has no install step.
     }
 
     public static function deactivate() {
-        TSOL_Library_Auth::deactivate();
-        TSOL_Library_Content::deactivate();
     }
 
     private function register_features() {
         $this->features = array(
             new TSOL_Accountability_Modal(),
             new TSOL_Cookie_Consent(),
-            new TSOL_Library_Content(),
-            new TSOL_Library_Announcements(),
         );
 
         /**
