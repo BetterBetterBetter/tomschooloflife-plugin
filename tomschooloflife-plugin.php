@@ -3,7 +3,7 @@
  * Plugin Name: Tom's School Of Life — Site Companion
  * Plugin URI: https://github.com/BetterBetterBetter/tomschooloflife-plugin
  * Description: TSOL site-specific features (accountability modal, cookie consent). The member Library runs in the separate Member Library Platform plugin.
- * Version: 0.6.2
+ * Version: 0.6.3
  * Author: Thrice Agency
  * License: GPL v2 or later
  * Text Domain: tomschooloflife-plugin
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants.
-define('TSOL_SITE_PLUGIN_VERSION', '0.6.2');
+define('TSOL_SITE_PLUGIN_VERSION', '0.6.3');
 define('TSOL_SITE_PLUGIN_FILE', __FILE__);
 define('TSOL_SITE_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('TSOL_SITE_PLUGIN_DIR', plugin_dir_path(__FILE__));
