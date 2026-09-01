@@ -56,6 +56,12 @@ function buildEnvironment(options) {
         activeElement: createElement(),
         head: {
             appendChild: function(script) {
+                if (options.appendChildThrows) {
+                    // Simulate a browser shield (Brave) blocking a gated script
+                    // by throwing synchronously on append.
+                    throw new Error("Failed to execute 'appendChild' on 'Node': blocked by shields");
+                }
+
                 appendedScripts.push(script);
             }
         },
@@ -208,6 +214,8 @@ function buildEnvironment(options) {
         localStorage: localStorageValues,
         appendedScripts: appendedScripts,
         events: events,
+        banner: banner,
+        preferences: preferences,
         getReloads: function() {
             return reloads;
         }
@@ -259,5 +267,33 @@ withdrawal.window.tsolCookieConsent.rejectOptional();
 assert.strictEqual(JSON.parse(decodeURIComponent(withdrawal.cookieJar.tsol_cookie_consent)).marketing, false, 'Rejected marketing consent should be persisted.');
 assert.strictEqual(withdrawal.cookieJar._gcl_au, undefined, 'Known marketing cookies should be removed after rejection.');
 assert.strictEqual(withdrawal.getReloads(), 1, 'Withdrawing consent after loading a tracker should reload the page.');
+
+// Regression: a browser shield (Brave) that throws when a consent-gated script
+// is appended must not leave the banner stuck open. Reported by Brave users:
+// "clicking a selection does not make the pop-up go away."
+var shielded = buildEnvironment({
+    appendChildThrows: true,
+    settings: {
+        scripts: {
+            analytics: { urls: ['https://example.com/analytics.js'], inline: [] },
+            marketing: { urls: [], inline: ['window.marketingTrackerLoaded = true;'] }
+        }
+    }
+});
+assert.strictEqual(shielded.banner.hidden, false, 'Banner should be visible before a choice is made.');
+assert.doesNotThrow(function() {
+    shielded.window.tsolCookieConsent.acceptAll();
+}, 'Accepting must not throw even when a shield blocks script injection.');
+assert.strictEqual(shielded.banner.hidden, true, 'Banner must dismiss even when a shield blocks a gated script (Brave).');
+assert.strictEqual(JSON.parse(decodeURIComponent(shielded.cookieJar.tsol_cookie_consent)).analytics, true, 'Consent must still persist when script injection is blocked.');
+
+var shieldedReject = buildEnvironment({
+    appendChildThrows: true,
+    settings: { scripts: { analytics: { urls: ['https://example.com/a.js'], inline: [] }, marketing: { urls: [], inline: [] } } }
+});
+assert.doesNotThrow(function() {
+    shieldedReject.window.tsolCookieConsent.rejectOptional();
+}, 'Rejecting must not throw when a shield blocks script injection.');
+assert.strictEqual(shieldedReject.banner.hidden, true, 'Banner must dismiss on reject even when a shield blocks a gated script.');
 
 console.log('Cookie consent browser contract checks passed.');
