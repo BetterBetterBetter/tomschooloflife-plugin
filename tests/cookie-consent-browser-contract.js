@@ -6,7 +6,7 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
-var consentScript = fs.readFileSync(path.join(__dirname, '../assets/features/cookie-consent/cookie-consent.js'), 'utf8');
+var consentScript = fs.readFileSync(path.join(__dirname, '../assets/features/consent-ui/consent-ui.js'), 'utf8');
 
 function createElement(attributes) {
     attributes = attributes || {};

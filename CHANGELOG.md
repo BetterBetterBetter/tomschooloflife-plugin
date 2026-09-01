@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.6.3 - 2026-09-01
+
+- Fixed the cookie-consent banner being completely non-functional in Brave
+  (and any browser using an ad-blocker "cookie notice" filter list, e.g.
+  uBlock's cookie list). Those lists network-block any URL matching
+  `/cookie-consent.js`, so the banner's script — served from
+  `assets/features/cookie-consent/cookie-consent.js` — never loaded
+  (`ERR_BLOCKED_BY_CLIENT`), no click handlers attached, and every banner
+  button was dead: the banner could not be dismissed at all. This is the
+  primary cause of the reported Brave issue; the 0.6.2 script-injection
+  hardening addressed a real but secondary path.
+- Renamed the browser-served assets from `assets/features/cookie-consent/` to
+  `assets/features/consent-ui/` (`consent-ui.js` / `consent-ui.css`) so the
+  URLs no longer match the blocklist rule. Enqueue paths updated; the WP script
+  handle and server-side class paths are unchanged. Verified the new paths are
+  clean against the EasyList Cookie / Fanboy Cookiemonster lists.
+
 ## 0.6.2 - 2026-09-01
 
 - Fixed the cookie-consent banner failing to dismiss for Brave users (and

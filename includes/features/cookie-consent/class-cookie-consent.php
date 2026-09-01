@@ -256,16 +256,20 @@ class TSOL_Cookie_Consent implements TSOL_Site_Feature {
 
         $this->enqueue_launcher_dock_assets();
 
+        // Asset paths deliberately avoid the "cookie-consent" token: ad-blocker
+        // "cookie notice" filter lists (EasyList Cookie / Fanboy, used by Brave
+        // and uBlock) network-block /cookie-consent.js, which prevented the
+        // banner's script from loading at all — dead buttons for Brave users.
         wp_enqueue_style(
             'tsol-cookie-consent',
-            TSOL_SITE_PLUGIN_URL . 'assets/features/cookie-consent/cookie-consent.css',
+            TSOL_SITE_PLUGIN_URL . 'assets/features/consent-ui/consent-ui.css',
             array('tsol-site-launcher-dock'),
             TSOL_SITE_PLUGIN_VERSION
         );
 
         wp_enqueue_script(
             'tsol-cookie-consent',
-            TSOL_SITE_PLUGIN_URL . 'assets/features/cookie-consent/cookie-consent.js',
+            TSOL_SITE_PLUGIN_URL . 'assets/features/consent-ui/consent-ui.js',
             array('tsol-site-launcher-dock'),
             TSOL_SITE_PLUGIN_VERSION,
             true
