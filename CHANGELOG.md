@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.6.1 - 2026-09-01
+
+- Repointed the two WP-CLI utilities in `tools/` at the renamed library
+  classes. The `TSOL_Library_* → MemberLibrary_*` rename updated `includes/`
+  but missed `tools/`, so `create-media-source-demo.php` and
+  `report-library-access-rule-ownership.php` both fatalled on load with
+  `Class "TSOL_Library_Content_Model" not found`. Neither is loaded at
+  runtime, so 0.6.0 was functionally unaffected.
+- Removed the orphaned Library admin CSS/JS (`assets/features/library-content`
+  and `library-notifications`) that the 0.6.0 strip left behind. No remaining
+  PHP enqueued them.
+
 ## 0.6.0 - 2026-09-01
 
 **Breaking — requires the Member Library Platform plugin to be installed and
