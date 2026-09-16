@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.6.4 - 2026-09-16
+
+- Closed a WordPress REST authorization bypass that exposed the body of a MemberPress-protected bonus page to anonymous callers even though its normal frontend route redirected to login.
+- Enforced MemberPress authorization for direct core REST item reads and collection results without introducing a second membership list.
+- Added private/no-store, no-sniff, and no-index headers for protected direct REST responses plus a fail-closed anonymous fallback for the known sensitive page.
+- Added source and live WP-CLI contract checks that never embed or print the course password, bucket name, or object URLs.
+
 ## 0.6.3 - 2026-09-01
 
 - Fixed the cookie-consent banner being completely non-functional in Brave
