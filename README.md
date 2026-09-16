@@ -30,6 +30,7 @@ Supported development/deployed plugin basenames:
 - `includes/features/cookie-consent/class-cookie-consent.php` - Cookie consent frontend feature.
 - `includes/features/cookie-consent/class-cookie-consent-admin.php` - Cookie consent admin tabs.
 - `includes/features/cookie-consent/class-cookie-consent-settings.php` - Cookie consent settings and sanitization.
+- `includes/features/memberpress-rest-content-guard/` - Fail-closed REST enforcement for MemberPress-protected post bodies, including private/no-store response headers.
 - `includes/features/library-auth/` - Narrow WordPress identity, MemberPress content-authorization, and Library-session security bridge for the standalone Library.
 - `includes/features/library-auth/class-library-account-security.php` - MemberPress Account Security tab and confirmed all-device Library-session revocation action.
 - `includes/features/library-content/` - Private TSOL-owned courses/content/Speaker profiles, public Course landing fields, editorial UI, catalogue projection, and guarded MemberPress Access Groups management.
@@ -82,6 +83,12 @@ Important: this feature cannot stop scripts that are hard-coded by another plugi
 The official Tapfiliate plugin's `tapfiliate-js` handle is captured automatically and emitted as inert Marketing-category scripts. This preserves its WooCommerce conversion data while allowing the consent frontend to control when the vendor code executes. Additional registered WordPress script handles can opt into the same mechanism with the `tsol_site_cookie_consent_managed_script_handles` filter.
 
 The existing WPCode Tapfiliate handlers (snippet IDs `102804` and `102816`) are also converted to inert Marketing-category script tags. The IDs can be changed with the `tsol_site_cookie_consent_wpcode_marketing_snippet_ids` filter.
+
+## MemberPress REST Content Guard
+
+The site companion enforces MemberPress authorization on core WordPress REST post and page reads even when MemberPress's optional REST-protection toggle is disabled. Anonymous and unauthorized users cannot retrieve protected bodies through direct item endpoints or collection queries. Authorized members and administrators continue to use MemberPress as the sole access authority; the plugin does not maintain a second membership list.
+
+Protected direct responses use private, no-store, no-sniff, and no-index headers. The known high-sensitivity fallback post IDs can be changed with `tsol_site_rest_guard_sensitive_post_ids`; source control must never contain the underlying password, bucket name, or object URLs.
 
 Legacy HFCM snippet `4` (Google), Vimeo snippets `14`, `21`, `26`, `28`, and `37`, RocketChat snippet `24`, and retired Kissmetrics snippet `57` are intercepted at the HFCM render hook. Their script tags are made inert under Marketing or Analytics consent while preserving each snippet's display rules; the ID/category map can be changed with `tsol_site_cookie_consent_hfcm_snippet_categories`.
 

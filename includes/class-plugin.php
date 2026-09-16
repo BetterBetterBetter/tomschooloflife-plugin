@@ -232,6 +232,7 @@ class TomsSchoolOfLifePlugin {
         $this->features = array(
             new TSOL_Accountability_Modal(),
             new TSOL_Cookie_Consent(),
+            new TSOL_MemberPress_REST_Content_Guard(),
         );
 
         /**
