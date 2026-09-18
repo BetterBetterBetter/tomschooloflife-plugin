@@ -100,6 +100,21 @@ class TSOL_Cookie_Consent_Admin {
         $managed_script_count = count($script_payload['analytics']['urls']) + count($script_payload['analytics']['inline']) + count($script_payload['marketing']['urls']) + count($script_payload['marketing']['inline']);
 
         ?>
+        <section class="tsol-site-card">
+            <h2><?php esc_html_e('Cookie consent', 'tomschooloflife-plugin'); ?></h2>
+            <p><?php echo esc_html($settings['enabled'] === '1'
+                ? __('On. Videos and other third-party content are controlled by visitor consent.', 'tomschooloflife-plugin')
+                : __('Off. The banner, consent scripts, and video restrictions are disabled.', 'tomschooloflife-plugin')); ?></p>
+            <form method="post" action="options.php">
+                <?php settings_fields(TSOL_Cookie_Consent_Settings::OPTION_GROUP); ?>
+                <input type="hidden" name="<?php echo esc_attr(TSOL_Cookie_Consent_Settings::OPTION . '[enabled]'); ?>" value="<?php echo esc_attr($settings['enabled'] === '1' ? '0' : '1'); ?>">
+                <?php submit_button($settings['enabled'] === '1'
+                    ? __('Turn off cookie consent', 'tomschooloflife-plugin')
+                    : __('Turn on cookie consent', 'tomschooloflife-plugin'), 'primary', 'submit', false); ?>
+            </form>
+            <p class="description"><?php esc_html_e('After switching this setting, clear any page or CDN cache so visitors receive the updated video markup.', 'tomschooloflife-plugin'); ?></p>
+        </section>
+
         <div class="tsol-cookie-hero">
             <div>
                 <p><?php esc_html_e('Consent management', 'tomschooloflife-plugin'); ?></p>

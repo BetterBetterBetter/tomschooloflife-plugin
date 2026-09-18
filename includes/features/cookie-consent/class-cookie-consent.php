@@ -13,6 +13,10 @@ class TSOL_Cookie_Consent implements TSOL_Site_Feature {
     private $consent_managed_vendor_scripts = array();
 
     public function init() {
+        if ($this->get_settings()['enabled'] !== '1') {
+            return;
+        }
+
         add_action('wp_head', array($this, 'render_consent_mode_defaults'), 0);
         add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'));
         add_action('wp_enqueue_scripts', array($this, 'capture_consent_managed_vendor_scripts'), PHP_INT_MAX);

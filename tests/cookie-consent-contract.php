@@ -31,6 +31,22 @@ $assert(
     'The Settings API sanitizer removed a JavaScript regular-expression escape.'
 );
 
+$original_option = get_option(TSOL_Cookie_Consent_Settings::OPTION, null);
+$disabled_option = TSOL_Cookie_Consent_Settings::get_settings();
+$disabled_option['enabled'] = '0';
+update_option(TSOL_Cookie_Consent_Settings::OPTION, $disabled_option);
+$disabled_frontend = new TSOL_Cookie_Consent();
+$disabled_frontend->init();
+$assert(has_filter('the_content', array($disabled_frontend, 'gate_third_party_embeds')) === false, 'The disabled feature registered its video gate.');
+$assert(has_action('wp_head', array($disabled_frontend, 'render_consent_mode_defaults')) === false, 'The disabled feature registered Consent Mode defaults.');
+$vimeo_markup = '<iframe class="video" src="https://player.vimeo.com/video/123?autoplay=0" allowfullscreen></iframe>';
+$assert($disabled_frontend->gate_third_party_embeds($vimeo_markup) === $vimeo_markup, 'The disabled feature still blocked a Vimeo iframe.');
+if ($original_option === null) {
+    delete_option(TSOL_Cookie_Consent_Settings::OPTION);
+} else {
+    update_option(TSOL_Cookie_Consent_Settings::OPTION, $original_option);
+}
+
 $original_cookie_exists = array_key_exists(TSOL_Cookie_Consent_Settings::COOKIE_NAME, $_COOKIE);
 $original_cookie = $original_cookie_exists ? $_COOKIE[TSOL_Cookie_Consent_Settings::COOKIE_NAME] : null;
 $original_gpc_exists = array_key_exists('HTTP_SEC_GPC', $_SERVER);

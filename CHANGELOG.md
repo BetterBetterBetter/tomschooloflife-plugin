@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.4 - 2026-09-17
+
+- Added a prominent on/off control to the Cookie Consent overview. Turning it
+  off skips all cookie-consent frontend hooks, so video embeds and related
+  scripts load normally.
+
 ## 0.6.3 - 2026-09-01
 
 - Fixed the cookie-consent banner being completely non-functional in Brave
