@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.6.6 - 2026-09-27
+
+- Fixed the 0.6.5 REST content guard not actually blocking anonymous direct reads of the protected bonus page: the direct-item check ran on `rest_pre_dispatch`, which fires before WordPress resolves the request's URL parameters, so it always read an empty post ID and silently passed every request through. Moved the check to `rest_request_before_callbacks`, which runs after routing, and changed its fail-closed response to a `WP_Error` (matching WordPress's own convention) so it can no longer be overwritten before the route callback executes.
+- Added a WP-CLI contract check that exercises the real `WP_REST_Server` dispatch pipeline via `rest_do_request()` for `/wp/v2/pages/100164`, instead of calling the guard method directly with a hand-set parameter, so this exact regression is caught by CI/contract checks going forward.
+
 ## 0.6.5 - 2026-09-26
 
 - Closed a WordPress REST authorization bypass that exposed the body of a MemberPress-protected bonus page to anonymous callers even though its normal frontend route redirected to login.

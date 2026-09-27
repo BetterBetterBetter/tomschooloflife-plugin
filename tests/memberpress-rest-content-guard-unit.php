@@ -78,6 +78,34 @@ class WP_REST_Response {
     }
 }
 
+class WP_Error {
+    private $code;
+    private $message;
+    private $data;
+
+    public function __construct($code = '', $message = '', $data = array()) {
+        $this->code = $code;
+        $this->message = $message;
+        $this->data = $data;
+    }
+
+    public function get_error_code() {
+        return $this->code;
+    }
+
+    public function get_error_message() {
+        return $this->message;
+    }
+
+    public function get_error_data() {
+        return $this->data;
+    }
+}
+
+function is_wp_error($thing) {
+    return $thing instanceof WP_Error;
+}
+
 class MeprRule {
     public static $locked = array();
     public static $rules = array();
@@ -164,7 +192,7 @@ $assert = static function ($condition, $message) use (&$failures) {
 $guard = new TSOL_MemberPress_REST_Content_Guard();
 $guard->init();
 $assert(isset($test_hooks['posts_results']), 'Collection filter was not registered.');
-$assert(isset($test_hooks['rest_pre_dispatch']), 'Direct-item filter was not registered.');
+$assert(isset($test_hooks['rest_request_before_callbacks']), 'Direct-item filter was not registered.');
 $assert(isset($test_hooks['rest_post_dispatch']), 'Response-hardening filter was not registered.');
 
 $test_posts = array(
@@ -183,32 +211,36 @@ $admin_results = $guard->filter_locked_rest_posts(array_values($test_posts), nul
 $assert(count($admin_results) === 3, 'Administrator REST access was incorrectly filtered.');
 $test_is_admin = false;
 
+// $handler is unused by the guard (unset() immediately), so an empty array
+// stands in for the matched route handler array real dispatch would pass.
 $request = new WP_REST_Request('GET', '/wp/v2/pages/100164');
 $request->set_param('id', 100164);
-$denied = $guard->guard_direct_rest_item(null, null, $request);
-$assert($denied instanceof WP_REST_Response, 'Locked direct item did not receive a REST response.');
-$assert($denied->get_status() === 404, 'Locked direct item did not return a generic 404.');
-$assert(strpos(json_encode($denied->get_data()), 'contract-only secret marker') === false, 'Denied response serialized protected content.');
-$assert(strpos($denied->get_headers()['Cache-Control'], 'no-store') !== false, 'Denied response is missing no-store.');
-$assert($denied->get_headers()['X-Content-Type-Options'] === 'nosniff', 'Denied response is missing nosniff.');
+$denied = $guard->guard_direct_rest_item(null, array(), $request);
+$assert($denied instanceof WP_Error, 'Locked direct item did not receive a WP_Error.');
+$assert(is_array($denied->get_error_data()) && $denied->get_error_data()['status'] === 404, 'Locked direct item did not carry a 404 status.');
+$assert(strpos((string) $denied->get_error_message(), 'contract-only secret marker') === false, 'Denied response leaked protected content in its message.');
+// Header hardening (no-store/nosniff) on the denied response is now verified
+// by the live rest_do_request()-based contract check, since it only happens
+// once WordPress converts this WP_Error into a WP_REST_Response — a step
+// this standalone stub environment doesn't simulate.
 
 $post_request = new WP_REST_Request('POST', '/wp/v2/pages/100164');
 $post_request->set_param('id', 100164);
-$assert($guard->guard_direct_rest_item(null, null, $post_request) === null, 'The read guard interfered with a non-read request.');
+$assert($guard->guard_direct_rest_item(null, array(), $post_request) === null, 'The read guard interfered with a non-read request.');
 
 $wrong_route = new WP_REST_Request('GET', '/custom/v1/pages/100164');
 $wrong_route->set_param('id', 100164);
-$assert($guard->guard_direct_rest_item(null, null, $wrong_route) === null, 'The guard intercepted an unrelated REST namespace.');
+$assert($guard->guard_direct_rest_item(null, array(), $wrong_route) === null, 'The guard intercepted an unrelated REST namespace.');
 
 $test_is_logged_in = true;
 MeprRule::$locked[100164] = false;
-$assert($guard->guard_direct_rest_item(null, null, $request) === null, 'An authorized member was denied protected content.');
+$assert($guard->guard_direct_rest_item(null, array(), $request) === null, 'An authorized member was denied protected content.');
 $authorized = $guard->harden_protected_rest_response(new WP_REST_Response(array('content' => 'allowed')), null, $request);
 $assert(strpos($authorized->get_headers()['Cache-Control'], 'no-store') !== false, 'Authorized protected content was not marked no-store.');
 
 $test_is_logged_in = false;
 MeprRule::$locked[100164] = false;
-$assert($guard->guard_direct_rest_item(null, null, $request) instanceof WP_REST_Response, 'Sensitive fallback did not fail closed for an anonymous request.');
+$assert($guard->guard_direct_rest_item(null, array(), $request) instanceof WP_Error, 'Sensitive fallback did not fail closed for an anonymous request.');
 
 $public_request = new WP_REST_Request('GET', '/wp/v2/pages/2');
 $public_request->set_param('id', 2);

@@ -19,7 +19,7 @@ final class TSOL_MemberPress_REST_Content_Guard implements TSOL_Site_Feature {
 
     public function init() {
         add_filter('posts_results', array($this, 'filter_locked_rest_posts'), 20, 2);
-        add_filter('rest_pre_dispatch', array($this, 'guard_direct_rest_item'), 9, 3);
+        add_filter('rest_request_before_callbacks', array($this, 'guard_direct_rest_item'), 9, 3);
         add_filter('rest_post_dispatch', array($this, 'harden_protected_rest_response'), 10, 3);
     }
 
@@ -54,34 +54,42 @@ final class TSOL_MemberPress_REST_Content_Guard implements TSOL_Site_Feature {
     }
 
     /**
-     * Deny direct core REST reads before WordPress serializes a protected body.
+     * Deny direct core REST reads before WordPress executes the route callback.
      *
-     * A generic 404 avoids confirming the existence of protected material.
+     * Runs on rest_request_before_callbacks rather than rest_pre_dispatch:
+     * routing (and therefore $request's URL params, including the numeric
+     * post ID parsed from /wp/v2/pages/(?P<id>\d+)) is only resolved by
+     * WP_REST_Server::match_request_to_handler(), which core calls after
+     * rest_pre_dispatch fires. Reading get_param('id') at rest_pre_dispatch
+     * time always saw an empty URL param bag, so this guard silently no-opped
+     * for every direct-item request regardless of MemberPress state. See
+     * 0.6.6 changelog for the incident this fixes.
      *
-     * @param mixed           $result  Existing pre-dispatch result.
-     * @param WP_REST_Server  $server  REST server.
-     * @param WP_REST_Request $request Current request.
+     * A generic 404 (via WP_Error, so it isn't overwritten before the route
+     * callback runs) avoids confirming the existence of protected material.
+     *
+     * @param WP_Error|null   $response Existing pre-callback response/error.
+     * @param array           $handler  Matched route handler.
+     * @param WP_REST_Request $request  Current request.
      * @return mixed
      */
-    public function guard_direct_rest_item($result, $server, $request) {
-        unset($server);
+    public function guard_direct_rest_item($response, $handler, $request) {
+        unset($handler);
 
-        if (null !== $result) {
-            return $result;
+        if (null !== $response) {
+            return $response;
         }
 
         $post = $this->post_from_direct_rest_request($request);
         if (!$post || !$this->is_locked_for_current_user($post)) {
-            return $result;
+            return $response;
         }
 
-        $response = new WP_REST_Response(array(
-            'code'    => 'rest_post_invalid_id',
-            'message' => __('Invalid post ID.', 'tomschooloflife-plugin'),
-            'data'    => array('status' => 404),
-        ), 404);
-
-        return $this->add_private_headers($response);
+        return new WP_Error(
+            'rest_post_invalid_id',
+            __('Invalid post ID.', 'tomschooloflife-plugin'),
+            array('status' => 404)
+        );
     }
 
     /**

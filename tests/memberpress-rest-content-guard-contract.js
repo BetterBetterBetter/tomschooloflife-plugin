@@ -20,7 +20,7 @@ assert.match(entrypoint, /class-memberpress-rest-content-guard\.php/, 'The plugi
 assert.match(loader, /new TSOL_MemberPress_REST_Content_Guard\(\)/, 'The site plugin must register the guard.');
 assert.match(guard, /implements TSOL_Site_Feature/, 'The guard must use the site feature contract.');
 assert.match(guard, /add_filter\('posts_results'/, 'REST collection queries must remove locked MemberPress posts.');
-assert.match(guard, /add_filter\('rest_pre_dispatch'/, 'Direct REST item requests must be denied before content serialization.');
+assert.match(guard, /add_filter\('rest_request_before_callbacks'/, 'Direct REST item requests must be denied after routing but before the route callback runs.');
 assert.match(guard, /add_filter\('rest_post_dispatch'/, 'Protected REST responses must receive private no-store headers.');
 assert.match(guard, /MeprRule::is_locked/, 'Authorization must defer to MemberPress rather than a second membership list.');
 assert.match(guard, /MeprRule::get_rules/, 'Response hardening must recognize protected content even for authorized members.');
